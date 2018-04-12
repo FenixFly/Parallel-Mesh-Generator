@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 project(PARALLEL_MESH LANGUAGES CXX CUDA)
 
+find_package(CUDA QUIET REQUIRED)
 
 set(SOURCES
 	src/grainmesh.h
