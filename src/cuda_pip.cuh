@@ -228,7 +228,7 @@ cudaError_t calcIntersectionCuda2(
 	int num_blocks = pointsCount / block_size;
 
 	// Launch a kernel on the GPU with one thread for each element.
-	calcPipKernel << < num_blocks, block_size >> >
+	calcPipKernel <<< num_blocks, block_size >>>
 		(dev_result, dev_points, pointsCount, dev_triags, trianglesCount);
 
 	// cudaDeviceSynchronize waits for the kernel to finish, and returns

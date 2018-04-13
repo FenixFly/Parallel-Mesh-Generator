@@ -32,6 +32,8 @@ int main()
 	int nX = 64, nY = 64, nZ = 64;
 	float offX = -17.0f, offY = -7.0f, offZ = -7.0f;
 	float edgeLen = 0.2;
+	int pCount = nX * nY * nZ;
+	int tCount = (nX - 1)*(nY - 1)*(nZ - 1) * 6;
 
 	float3 *dev_points = 0;
 	int4 *dev_tetra = 0;
@@ -40,7 +42,7 @@ int main()
 		timeMeshMarkStart, timeMeshMarkEnd,
 		timeMeshCutStart, timeMeshCutEnd,
 		timeMeshSmoothStart, timeMeshSmoothEnd;
-	/*
+	
 	// Generate mesh with CUDA //
 	timeMeshGenStart = clock();
 	cudaError_t cudaStatus = genMeshWithCuda(dev_points, dev_tetra,
@@ -50,35 +52,35 @@ int main()
 		return 1;
 	}
 	timeMeshGenEnd = clock();
-	*/
+	
 	
 	/// Copy Mesh from GPU and save in file //
 
-	//float3 *points = new float3[nX*nY*nZ];
-	//int4 *tetra = new int4[(nX - 1)*(nY - 1)*(nZ - 1) * 5];
-	//copyMeshFromGPU(points, dev_points, nX*nY*nZ,
-	//	tetra, dev_tetra, (nX - 1)*(nY - 1)*(nZ - 1) * 5);
+	//float3 *points = new float3[pCount];
+	//int4 *tetra = new int4[tCount];
+	//copyMeshFromGPU(points, dev_points, pCount,
+	//	tetra, dev_tetra, tCount);
 
 	//// Save mesh //
 	//MyMesh mymesh;
 	//mymesh.mPoints = points;
-	//mymesh.mPointsCount = nX*nY*nZ;
-	//short* pLabels = new short[mymesh.mPointsCount];
-	//for (int i = 0; i < mymesh.mPointsCount; i++)
+	//mymesh.mPointsCount = pCount;
+	//short* pLabels = new short[pCount];
+	//for (int i = 0; i < pCount; i++)
 	//	pLabels[i] = 0;
 	//mymesh.mPointLabels = pLabels;
 
 	//mymesh.mTetra = tetra;
-	//mymesh.mTetraCount = (nX - 1)*(nY - 1)*(nZ - 1) * 5;
-	//short* tLabels = new short[mymesh.mTetraCount];
-	//for (int i = 0; i < mymesh.mTetraCount; i++)
+	//mymesh.mTetraCount = tCount;
+	//short* tLabels = new short[tCount];
+	//for (int i = 0; i < tCount; i++)
 	//	tLabels[i] = 0;
 	//mymesh.mTetraLabels = tLabels;
 
 	//grain::saveNodeFile("E:/Data/STL/results/gpu.node", &mymesh);
 	//grain::saveEleFile("E:/Data/STL/results/gpu.ele", &mymesh);
 
-	/*
+	
 	float timeWithCopy, timeWithoutCopy;
 	MySTL stl;
 	stl.readSTL("E:/Data/STL/CyberheartModel/00_heart_shell.stl");
@@ -89,11 +91,11 @@ int main()
 		mystl[i].y = stl.trigs[3 * i + 1];
 		mystl[i].z = stl.trigs[3 * i + 2];
 	}
-	bool * result = new bool[nX * nY * nZ];
+	bool * result = new bool[pCount];
 	timeMeshMarkStart = clock();
 	// Mark mesh with CUDA //
 	cudaStatus = calcIntersectionCuda2(result, 
-		dev_points, nX * nY * nZ,
+		dev_points, pCount,
 		mystl, stl.trigs.size()/9,
 		timeWithCopy, timeWithoutCopy);
 	if (cudaStatus != cudaSuccess) {
@@ -101,10 +103,10 @@ int main()
 		return 1;
 	}
 	timeMeshMarkEnd = clock();
-
+	
 	// Generate mesh with labels //
-	short* resvec = new short[nX * nY * nZ];
-	for (int i = 0; i < nX * nY * nZ; i++)
+	short* resvec = new short[pCount];
+	for (int i = 0; i < pCount; i++)
 	{
 		int val = 999;
 		if (result[i] == true)
@@ -114,28 +116,28 @@ int main()
 	
 	/// Copy Mesh from GPU and save in file //
 	
-	float3 *points = new float3[nX*nY*nZ];
-	int4 *tetra = new int4[(nX - 1)*(nY - 1)*(nZ - 1) * 5];
+	float3 *points = new float3[pCount];
+	int4 *tetra = new int4[tCount];
 	copyMeshFromGPU(points, dev_points, nX*nY*nZ,
-		tetra, dev_tetra, (nX - 1)*(nY - 1)*(nZ - 1) * 5);
+		tetra, dev_tetra, tCount);
 
 
 	MyMesh mymesh;
 	mymesh.mPoints = points;
-	mymesh.mPointsCount = nX*nY*nZ;
+	mymesh.mPointsCount = pCount;
 	mymesh.mPointLabels = resvec;
 
 	mymesh.mTetra = tetra;
-	mymesh.mTetraCount = (nX - 1)*(nY - 1)*(nZ - 1) * 5;
-	short* tLabels = new short[mymesh.mTetraCount];
-	for (int i = 0; i < mymesh.mTetraCount; i++)
+	mymesh.mTetraCount = tCount;
+	short* tLabels = new short[tCount];
+	for (int i = 0; i < tCount; i++)
 		tLabels[i] = 0;
 	mymesh.mTetraLabels = tLabels;
-	*/
-	/*
-	grain::saveNodeFile("E:/Data/STL/results/gpu2.node", &mymesh);
-	grain::saveEleFile("E:/Data/STL/results/gpu2.ele", &mymesh);
-	*/
+	
+	
+	//grain::saveNodeFile("E:/Data/STL/results/gpu2.node", &mymesh);
+	//grain::saveEleFile("E:/Data/STL/results/gpu2.ele", &mymesh);
+	
 	
 
 
@@ -172,7 +174,7 @@ int main()
 	grain::readEleFile("E:/Data/STL/results/beforeCut.ele", &mymesh);
 	*/
 
-	/*
+	
 
 	// Cutting //
 
@@ -180,19 +182,19 @@ int main()
 	MeshCut cut;
 	cut.cutMeshMarkedVertices(&mymesh);
 	timeMeshCutEnd = clock();
-	*/
-	/*
-	grain::saveNodeFile("E:/Data/STL/results/afterCut.node", &mymesh);
-	grain::saveEleFile("E:/Data/STL/results/afterCut.ele", &mymesh);
-	*/
+	
+	
+	//grain::saveNodeFile("E:/Data/STL/results/afterCut.node", &mymesh);
+	//grain::saveEleFile("E:/Data/STL/results/afterCut.ele", &mymesh);
+	
 	// Smoothing //
 
 	
-	MyMesh mymesh;
-	grain::readNodeFile("E:/Data/STL/results/afterCut.node", &mymesh);
-	grain::readEleFile("E:/Data/STL/results/afterCut.ele", &mymesh);
-	MySTL stl;
-	stl.readSTL("E:/Data/STL/CyberheartModel/00_heart_shell.stl");
+	//MyMesh mymesh;
+	//grain::readNodeFile("E:/Data/STL/results/afterCut.node", &mymesh);
+	//grain::readEleFile("E:/Data/STL/results/afterCut.ele", &mymesh);
+	//MySTL stl;
+	//stl.readSTL("E:/Data/STL/CyberheartModel/00_heart_shell.stl");
 	
 
 
@@ -206,7 +208,7 @@ int main()
 
 	grain::saveNodeFile("E:/Data/STL/results/afterSmooth.node", &mymesh);
 	grain::saveEleFile("E:/Data/STL/results/afterSmooth.ele", &mymesh);
-
+	
 	// cudaDeviceReset must be called before exiting in order for profiling and
 	// tracing tools such as Nsight and Visual Profiler to show complete traces.
 	/*cudaStatus = cudaDeviceReset();
@@ -214,6 +216,13 @@ int main()
 		fprintf(stderr, "cudaDeviceReset failed! \n");
 		return 1;
 	}*/
+
+	std::ofstream fout("result.txt");
+	fout << "Time mesh generate " << (float)(timeMeshGenEnd - timeMeshGenStart) / CLK_TCK << "\n"
+		<< "Time mesh mark " << (float)(timeMeshMarkEnd - timeMeshMarkStart) / CLK_TCK << "\n"
+		<< " Time mesh cut " << (float)(timeMeshCutEnd - timeMeshCutStart) / CLK_TCK << "\n"
+		<< " Time mesh smooth " << (float)(timeMeshSmoothEnd - timeMeshSmoothStart) / CLK_TCK << "\n";
+	fout.close();
 
 
 	return 0;

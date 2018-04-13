@@ -55,34 +55,39 @@ __global__ void kernel_generate_mesh(float3 *c, int4 *tet,
 					+ ix; // X loop
 
 				int index2 =
-					iz * nX*nY //Z loop
+					iz * nX*nY // Z loop
 					+ iy * nX // Y loop 
 					+ ix + 1; // X loop
 
 				int index3 =
-					iz* nX*nY //Z loop
+					iz* nX*nY // Z loop
 					+ iy * nX // Y loop 
 					+ ix + nX; // X loop
 
 				int index4 =
-					iz* nX*nY //Z loop
+					iz* nX*nY // Z loop
 					+ iy * nX // Y loop 
 					+ ix + nX * nY; // X loop
 
 				int index5 =
-					iz * nX*nY //Z loop
+					iz * nX*nY // Z loop
 					+ iy * nX // Y loop 
 					+ ix + nX + 1; // X loop
 
 				int index6 =
-					iz * nX*nY //Z loop
+					iz * nX*nY // Z loop
 					+ iy * nX // Y loop 
 					+ ix + nX*nY + 1; // X loop
 
 				int index7 =
-					iz * nX*nY //Z loop
+					iz * nX*nY // Z loop
 					+ iy * nX // Y loop 
 					+ ix + nX*nY + nX; // X loop
+
+				int index8 =
+					iz * nX * nY // Z loop
+					+ iy * nX // Y loop
+					+ ix + nX*nY + nX + 1; // X loop
 
 
 				int4 tmp1 = { index1, index2, index3, index4 };
@@ -90,23 +95,27 @@ __global__ void kernel_generate_mesh(float3 *c, int4 *tet,
 				int4 tmp3 = { index2, index5, index3, index6 };
 				int4 tmp4 = { index4, index6, index7, index3 };
 				int4 tmp5 = { index3, index6, index5, index7 };
+				int4 tmp6 = { index6, index8, index7, index5 };
 
 
 
 				//regular tetra
-				memcpy(&tet[(ix + iy*(nX - 1) + iz*(nY - 1)*(nX - 1)) * 5], &tmp1, sizeof(int4));
+				memcpy(&tet[(ix + iy*(nX - 1) + iz*(nY - 1)*(nX - 1)) * 6 + 0], &tmp1, sizeof(int4));
 
 				//first from octa
-				memcpy(&tet[(ix + iy*(nX - 1) + iz*(nY - 1)*(nX - 1)) * 5 + 1], &tmp2, sizeof(int4));
+				memcpy(&tet[(ix + iy*(nX - 1) + iz*(nY - 1)*(nX - 1)) * 6 + 1], &tmp2, sizeof(int4));
 
 				//second from octa
-				memcpy(&tet[(ix + iy*(nX - 1) + iz*(nY - 1)*(nX - 1)) * 5 + 2], &tmp3, sizeof(int4));
+				memcpy(&tet[(ix + iy*(nX - 1) + iz*(nY - 1)*(nX - 1)) * 6 + 2], &tmp3, sizeof(int4));
 
 				//third from octa
-				memcpy(&tet[(ix + iy*(nX - 1) + iz*(nY - 1)*(nX - 1)) * 5 + 3], &tmp4, sizeof(int4));
+				memcpy(&tet[(ix + iy*(nX - 1) + iz*(nY - 1)*(nX - 1)) * 6 + 3], &tmp4, sizeof(int4));
 
 				//fourth from octa
-				memcpy(&tet[(ix + iy*(nX - 1) + iz*(nY - 1)*(nX - 1)) * 5 + 4], &tmp5, sizeof(int4));
+				memcpy(&tet[(ix + iy*(nX - 1) + iz*(nY - 1)*(nX - 1)) * 6 + 4], &tmp5, sizeof(int4));
+
+				//second reular tetra
+				memcpy(&tet[(ix + iy*(nX - 1) + iz*(nY - 1)*(nX - 1)) * 6 + 5], &tmp6, sizeof(int4));
 			}
 		}
 
@@ -120,7 +129,7 @@ cudaError_t genMeshWithCuda(float3* &dev_points, int4* &dev_tetra,
 {
 	cudaError_t cudaStatus;
 	int pSize = nX * nY * nZ;
-	int tetraSize = (nX - 1)*(nY - 1)*(nZ - 1) * 5;
+	int tetraSize = (nX - 1)*(nY - 1)*(nZ - 1) * 6;
 
 	// Choose which GPU to run on, change this on a multi-GPU system.
 	cudaStatus = cudaSetDevice(0);
