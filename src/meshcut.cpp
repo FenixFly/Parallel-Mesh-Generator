@@ -79,7 +79,6 @@ void MeshCut::deleteNonRelationPoints(
 	std::vector<int2>* list,
 	int newPointsNumber)
 {
-	int t = 2143324;
 	// Old points //
 	float3* p = mesh->mPoints;
 	short* pLabels = mesh->mPointLabels;
@@ -92,11 +91,6 @@ void MeshCut::deleteNonRelationPoints(
 
 	for (int i = 0; i < pCount; i++)
 	{
-		if (i == 2768)
-		{
-			t = i* i;
-		}
-
 		int pos = list->at(i).y;
 		if (pos != -1)
 		{

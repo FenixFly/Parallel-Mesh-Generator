@@ -40,20 +40,21 @@ int main()
 
 	// Set mesh parameters //
 
-	int nX = 64, nY = 64, nZ = 64;
-	float offX = -17.0f, offY = -7.0f, offZ = -7.0f;
-	float edgeLen = 0.2;
+	int nX = 100, nY = 150, nZ = 150;
+	float offX = -16.0f, offY = -7.3f, offZ = -7.0f;
+	float edgeLen = 0.11;
 
-	bool generateMeshGPU = true;
+	bool generateMeshGPU = false;
 	bool saveMeshAfterGenerate = false;
+	bool loadMeshBeforeMark = true;
 	bool markMeshGPU = true;
-	bool saveMeshAfterMark = false;
-	bool loadMeshFromFile = false;
-	bool cutMesh = true;
+	bool saveMeshAfterMark = true;
+	bool loadMeshBeforeCut = false;
+	bool cutMesh = false;
 	bool saveMeshAfterCut = false;
 	bool loadMeshBeforeSmooth = false;
-	bool smoothMesh = true;
-	bool saveMeshAfterSmooth = true;
+	bool smoothMesh = false;
+	bool saveMeshAfterSmooth = false;
 
 	///
 	/// Change parameters here  ///
@@ -69,10 +70,10 @@ int main()
 	float3 *dev_points = 0;
 	int4 *dev_tetra = 0;
 
-	clock_t  timeMeshGenStart, timeMeshGenEnd, 
-		timeMeshMarkStart, timeMeshMarkEnd,
-		timeMeshCutStart, timeMeshCutEnd,
-		timeMeshSmoothStart, timeMeshSmoothEnd;
+	clock_t  timeMeshGenStart = 0, timeMeshGenEnd = 0,
+		timeMeshMarkStart = 0, timeMeshMarkEnd = 0,
+		timeMeshCutStart = 0, timeMeshCutEnd = 0,
+		timeMeshSmoothStart = 0, timeMeshSmoothEnd = 0;
 	
 	// Generate mesh // 
 	if (generateMeshGPU == true)
@@ -117,6 +118,31 @@ int main()
 		grain::saveEleFile(folderpath + "meshGenerated.ele", &mymesh);
 	}
 	
+	if (loadMeshBeforeMark == true)
+	{
+		grain::readNodeFile(folderpath + "torscoloredremoved.node", &mymesh);
+		grain::readEleFile(folderpath + "torscoloredremoved.ele", &mymesh);
+
+		pCount = mymesh.mPointsCount;
+		tCount = mymesh.mTetraCount;
+
+		cudaError_t cudaStatus;
+		// Copy input vectors from host memory to GPU buffers.
+		cudaStatus = cudaMemcpy(dev_points, mymesh.mPoints,
+			pCount * sizeof(float3), cudaMemcpyHostToDevice);
+		if (cudaStatus != cudaSuccess) {
+			fprintf(stderr, "cudaMemcpy 1  failed! \n");
+		}
+
+		// Copy input vectors from host memory to GPU buffers.
+		cudaStatus = cudaMemcpy(dev_tetra, mymesh.mTetra,
+			tCount * sizeof(int4), cudaMemcpyHostToDevice);
+		if (cudaStatus != cudaSuccess) {
+			fprintf(stderr, "cudaMemcpy 1  failed! \n");
+		}
+
+	}
+
 	// Mark labels with CUDA // 
 	if (markMeshGPU == true)
 	{
@@ -176,9 +202,9 @@ int main()
 		grain::saveNodeFile(folderpath + "meshMarked.node", &mymesh);
 		grain::saveEleFile(folderpath + "meshMarked.ele", &mymesh);
 	}
-	
+
 	// Load mesh before cut // 
-	if (loadMeshFromFile == true)
+	if (loadMeshBeforeCut == true)
 	{
 		grain::readNodeFile(folderpath + "meshMarked.node", &mymesh);
 		grain::readEleFile(folderpath + "meshMarked.ele", &mymesh);
@@ -203,8 +229,8 @@ int main()
 	// Load mesh before smooth // 
 	if (loadMeshBeforeSmooth == true)
 	{
-		grain::saveNodeFile(folderpath + "afterCut.node", &mymesh);
-		grain::saveEleFile(folderpath + "afterCut.ele", &mymesh);
+		grain::readNodeFile(folderpath + "afterCut.node", &mymesh);
+		grain::readEleFile(folderpath + "afterCut.ele", &mymesh);
 	}
 	
 	// Smoothing //

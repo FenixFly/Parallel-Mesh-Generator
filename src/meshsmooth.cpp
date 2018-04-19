@@ -1,4 +1,5 @@
 #include "meshsmooth.h"
+#include <fstream>
 
 float dist(float3 & a, float3 & b)
 {
@@ -54,7 +55,7 @@ void MeshSmooth::smoothMesh(MyMesh * mesh, MySTL * stl)
 		int movePointNumber = endpoints[i];
 		float3 oldPoint = p[movePointNumber];
 		float tNearest = 100.0f;
-		
+
 		for (int j = 0; j < stl->trigs.size(); j += 9)
 		{
 			float t = hasIntersection(
@@ -67,14 +68,17 @@ void MeshSmooth::smoothMesh(MyMesh * mesh, MySTL * stl)
 				tNearest = t;
 		}
 
-		float3 newPoint =
-			normalize(make_float3(newEndPoints[i].x, newEndPoints[i].y, newEndPoints[i].z) - oldPoint);
-		if (tNearest > 9.99f) tNearest = 0.0f;
-		newPoint = newPoint * tNearest + oldPoint;
+		float3 newPoint = make_float3(newEndPoints[i].x, newEndPoints[i].y, newEndPoints[i].z) - oldPoint;
+		if (length(newPoint)> 0.001f)
+			newPoint = normalize(newPoint);
+
+		if (tNearest > 0.99f) tNearest = 0.0f;
+
+		newPoint = newPoint * tNearest + oldPoint;	
 
 		// Если точка слишком далеко от меша, то ее нужно удалить, //
 		// а ее соседа изнутри надо подвинуть //
-		if (length(newPoint - p[movePointNumber]) > edgelen * 0.3)
+		if (length(newPoint - p[movePointNumber]) > edgelen * 0.5)
 		{
 			forDelete.push_back(movePointNumber);
 
@@ -93,7 +97,7 @@ void MeshSmooth::smoothMesh(MyMesh * mesh, MySTL * stl)
 				}
 			}
 			// Передвигаем его //
-			p[nearestNumber] = newPoint;
+			//p[nearestNumber] = newPoint;
 
 		}
 		p[movePointNumber] = newPoint;
@@ -107,6 +111,17 @@ void MeshSmooth::smoothMesh(MyMesh * mesh, MySTL * stl)
 	MeshCut cut;
 	cut.deleteNonRelationPoints(mesh, pairs, newpCount);
 	cut.deleteNonRelationTetra(mesh, pairs);
+
+	///std::cout << "Bad points after cutting \n";
+	///for (int i = 0; i < mesh->mPointsCount; i++)
+	///{
+	///	if (mesh->mPoints[i].y < -7.f || mesh->mPoints[i].x < -7.f || mesh->mPoints[i].z < -7.f)
+	///	{
+	///		std::cout << i << '_';
+	///	}
+	///}
+	///std::cout << "Number of vertices" << mesh->mPointsCount;
+
 
 	pairs->clear();
 }
