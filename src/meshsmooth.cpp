@@ -97,7 +97,8 @@ void MeshSmooth::smoothMesh(MyMesh * mesh, MySTL * stl)
 				}
 			}
 			// Передвигаем его //
-			//p[nearestNumber] = newPoint;
+			//if(length(newPoint - p[nearestNumber]) < edgelen * 0.5)
+				p[nearestNumber] = newPoint;
 
 		}
 		p[movePointNumber] = newPoint;
@@ -284,7 +285,7 @@ void MeshSmooth::deletePoints(MyMesh * mesh, std::vector<int>* deletePoints)
 
 std::vector<int2>* MeshSmooth::generateOldNewPairs(MyMesh * mesh, std::vector<int>* deleteNumbers, int & newpCount)
 {
-	deleteNumbers->push_back(INFINITY);
+	deleteNumbers->push_back(INT_MAX);
 	int oldpCount = mesh->mPointsCount;
 	newpCount = 0;
 	int posInDeleteList = 0;

@@ -33,28 +33,33 @@ int main()
 	///
 
 	// Filename of heart shell // 
-	std::string fileHeartStl = "E:/Data/STL/CyberheartModel/00_heart_shell.stl";
+	std::string fileHeartStl;
+	fileHeartStl = "E:/Data/STL/cube3.stl"; 
+	//fileHeartStl = "E:/Data/STL/CyberheartModel/00_heart_shell.stl";
 	// Folder to store mesh results //
 	std::string folderpath = "E:/Data/STL/results/";
 
 
 	// Set mesh parameters //
 
-	int nX = 100, nY = 150, nZ = 150;
-	float offX = -16.0f, offY = -7.3f, offZ = -7.0f;
-	float edgeLen = 0.11;
+	//int nX = 100, nY = 150, nZ = 150;
+	//float offX = -16.0f, offY = -7.3f, offZ = -7.0f;
+	//float edgeLen = 0.11;
+	int nX = 75, nY = 75, nZ = 75;
+	float offX = -18.5f, offY = -7.f, offZ = -7.5f;
+	float edgeLen = 0.2;
 
-	bool generateMeshGPU = false;
+	bool generateMeshGPU = true;
 	bool saveMeshAfterGenerate = false;
-	bool loadMeshBeforeMark = true;
+	bool loadMeshBeforeMark = false;
 	bool markMeshGPU = true;
-	bool saveMeshAfterMark = true;
+	bool saveMeshAfterMark = false;
 	bool loadMeshBeforeCut = false;
-	bool cutMesh = false;
-	bool saveMeshAfterCut = false;
+	bool cutMesh = true;
+	bool saveMeshAfterCut = true;
 	bool loadMeshBeforeSmooth = false;
-	bool smoothMesh = false;
-	bool saveMeshAfterSmooth = false;
+	bool smoothMesh = true;
+	bool saveMeshAfterSmooth = true;
 
 	///
 	/// Change parameters here  ///
@@ -121,25 +126,36 @@ int main()
 	if (loadMeshBeforeMark == true)
 	{
 		grain::readNodeFile(folderpath + "torscoloredremoved.node", &mymesh);
-		grain::readEleFile(folderpath + "torscoloredremoved.ele", &mymesh);
+		//grain::readEleFile(folderpath + "torscoloredremoved.ele", &mymesh);
 
 		pCount = mymesh.mPointsCount;
-		tCount = mymesh.mTetraCount;
+		//tCount = mymesh.mTetraCount;
 
 		cudaError_t cudaStatus;
+		// Choose which GPU to run on, change this on a multi-GPU system.
+		cudaStatus = cudaSetDevice(0);
+		if (cudaStatus != cudaSuccess) {
+			fprintf(stderr, "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed? \n");
+		}
+		// Allocate GPU buffers for points
+		cudaStatus = cudaMalloc((void**)&dev_points, pCount * sizeof(float3));
+		if (cudaStatus != cudaSuccess) {
+			fprintf(stderr, "cudaMalloc failed! \n");
+		}
+		float3* p = mymesh.mPoints;
 		// Copy input vectors from host memory to GPU buffers.
-		cudaStatus = cudaMemcpy(dev_points, mymesh.mPoints,
+		cudaStatus = cudaMemcpy(dev_points, p,
 			pCount * sizeof(float3), cudaMemcpyHostToDevice);
 		if (cudaStatus != cudaSuccess) {
 			fprintf(stderr, "cudaMemcpy 1  failed! \n");
 		}
 
 		// Copy input vectors from host memory to GPU buffers.
-		cudaStatus = cudaMemcpy(dev_tetra, mymesh.mTetra,
-			tCount * sizeof(int4), cudaMemcpyHostToDevice);
-		if (cudaStatus != cudaSuccess) {
-			fprintf(stderr, "cudaMemcpy 1  failed! \n");
-		}
+		//cudaStatus = cudaMemcpy(dev_tetra, mymesh.mTetra,
+		//	tCount * sizeof(int4), cudaMemcpyHostToDevice);
+		//if (cudaStatus != cudaSuccess) {
+		//	fprintf(stderr, "cudaMemcpy 1  failed! \n");
+		//}
 
 	}
 
@@ -181,7 +197,7 @@ int main()
 
 		float3 *points = new float3[pCount];
 		int4 *tetra = new int4[tCount];
-		copyMeshFromGPU(points, dev_points, nX*nY*nZ,
+		copyMeshFromGPU(points, dev_points, pCount,
 			tetra, dev_tetra, tCount);
 
 		mymesh.mPoints = points;
